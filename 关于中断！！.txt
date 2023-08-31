@@ -1,0 +1,75 @@
+说明：
+	开启中断的配置条件
+1）start.S  50 行左右 关于 status 设置的。
+
+
+2）在 OS_InitMips 函数里面把 wSR 对应于 CP0_STATUS 的寄存器最低位置位。 IE = 1
+
+
+3）在 OSCPUSaveSR 里面 保存status 把 IE = 0；  在 OSCPURestoreSR 把保存的 status数值恢复！！
+
+
+
+
+在文档 P67 有关于中断类型跟中断位对应关系的。
+
+
+
+在 Interrupt.c 文件里面有关于中断的处理方式！！！！
+
+
+关于waker中断的：	
+#define PMU_ChipCtrl  	*(volatile _u32 *)(PMU_BASEADDR+0x0C)
+从 start.S 执行时候 PMU_ChipCtr 还是0，需要软件把这些位置位。这样才能分辨是否是从waker醒来！！
+
+cpu休眠之后 cp0  count compare寄存器数值是如何的？？ 是不是全部复位？
+
+
+count compare 寄存器有啥特性 掉电不失去，并且count 与compare 相等的时候，其它条件允许，count继续往前走！
+
+
+WakeEn 为1 的时候才允许产生唤醒事件！！！ 仅仅是唤醒事件，要想产生唤醒中断还有其它条件！！
+
+
+可用信号量来控制cpu休眠，cpu醒来一次之后每一个任务都要初始化一遍。并且每个任务都完成要做的事情了可以释放一信号量
+当空闲任务检测到所有任务都把信号量释放了，就可以休眠了。！！
+
+
+当设置完 PMU_Compare 寄存器之后，如果再次设置 PMU_Command 寄存器有关wake的位则会导致不产生中断！！
+
+
+void	EnWake();
+void	DisWake();
+INT8U	GetWakeCnt();
+
+
+
+由于cpu休眠产生的误差 分析：
+cpu休眠之前产生的timer中断都会导致 OSTime 增加，但是有时候 10ms一次的中断，而在这过程里面cpu休眠了，比如在休眠以前
+
+过了5ms，但是 OSTime  没有增加。以后过了一段时间（比如2s）cpu醒来，从cpu醒来到wake中断得到执行应该在10ms之内的。
+
+这个时间差也小于不掉电的 count 的步长（1/16s = 62ms ）。count虽然在休眠期间继续走但是精度低。这样一段时间之后（这个时间是
+
+多少需要确定！！）误差会超过count的步长62ms此时可以用count校准下，把误差控制在1/16s之内！！
+
+count大概是18个小时溢出一次。所以是否需要在这个时间内部校准？？ 如果校准就需要校准 count 与全局变量（hour,minute,second）
+
+的差值。 （这个误差可以最后来校准！）
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

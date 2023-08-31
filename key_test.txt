@@ -1,0 +1,130 @@
+
+int key_test(int argc, void *argv[])
+{
+	if(argc < 2)
+	{
+		debugX(2, "\nusage: key_test <on/off>");
+		return 1;
+	}
+	else
+	{
+		char *s1 = (char *)argv[1];
+		char *s2 = "on";
+		char *s3 = "off";
+
+		if(strcmp(s1, s2)==0) {
+			TEST.key.open();
+		}
+		else if(strcmp(s1, s3)==0)
+			TEST.key.close();
+		else
+			debugX(2, "\nusage: key_test <on/off>");
+	}
+
+	return 0;
+}
+
+
+
+
+TEST.key.open = ls1d_key_open;
+
+
+void ls1d_key_open()
+{
+	INTERRUPT_DISABLE;
+	PMU_SecToken = PMU_SecToken_chipctrl;
+	PMU_ChipCtrl &= ~0x480;
+	PMU_SecToken = PMU_SecToken_command;
+	PMU_Command |= 0x2000;
+	INTERRUPT_ENABLE;
+}
+
+
+
+
+
+void KEY_INT()
+{
+	/* IntClr of PMU_Command */
+	PMU_SecToken = PMU_SecToken_command;
+	PMU_CommandW = 0x20000;
+
+	LS1D.flag.key = 1;
+}
+
+
+
+
+void ls1d_scheduler()
+{
+
+
+	if(LS1D.flag.key) {
+		LS1D.flag.key = 0;
+		TEST.task.key++;
+		}
+	user_task();
+}
+
+
+
+void user_task()
+{
+
+	if(TEST.task.key) {
+		TEST.task.key--;
+		TEST.key.process();
+	}
+}
+
+
+TEST.key.process = ls1d_key_delay;
+
+
+
+void ls1d_key_delay()
+{
+	static _u32 last_count;
+	_u32 count, gpio_in, key_delay = 0;
+	count = now();
+
+	gpio_in = PMU_GPIO_I;
+	if(gpio_in & KEY_OFF)
+	{
+		printf("\nkey_int: off\n");
+		key_delay = (count - last_count)%0x100000;
+		printf("\tkey_delay: %d\n", key_delay);
+	}
+	else
+	{
+		debugX(4, "key_int: on\n");
+		last_count = count;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

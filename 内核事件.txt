@@ -1,0 +1,17 @@
+注意一点关于内核事件使用的：
+	比如用OSMboxPend(pGMboxKey,0 ,&err); 等待消息邮箱这里的 pGMboxKey ，必须是要被初始化才行！！
+否则调用的时候不出错，但是会导致执行方式未知。。 错误也很难发现！！！！！！！！！！
+
+
+消息邮箱用的数据结构是OS_EVENT。
+
+
+信号量用的数据结构也是 OS_EVENT  ，在文件ucos_II.h里面有定义 
+ OS_EVENT          OSEventTbl[OS_MAX_EVENTS]
+
+
+OS_MAX_EVENTS 在os_cfg.h里面定义，定义可以使用多少个内核事件。
+
+
+
+

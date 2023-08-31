@@ -1,0 +1,60 @@
+Interrupt.c:
+	typedef void (*IRQ_HAND) (void);
+	IRQ_HAND MY_INT[8] = {SOFT_INT, TIMER1_INT, WAKER_INT, KEY_INT, BAT_FAIL, RES_VALID, INTC, EXINT};
+
+
+os_core.c:
+INT8U  const  OSMapTbl[]   = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+
+
+
+INT8U  const  OSUnMapTbl[] = {
+
+}
+
+
+
+
+
+
+
+ucos_II.h:
+	若干全局变量。。
+
+typedef struct os_tcb {
+	OS_STK        *OSTCBStkPtr; 
+	struct os_tcb *OSTCBNext; 
+	struct os_tcb *OSTCBPrev;
+
+	INT16U         OSTCBDly;  
+	INT8U          OSTCBStat;
+	INT8U          OSTCBPrio;
+	INT8U          OSTCBX; 
+	INT8U          OSTCBY;
+	INT8U          OSTCBBitX; 
+	INT8U          OSTCBBitY;
+} OS_TCB;			sizeof(OS_TCB)	= 20
+
+
+4 + 9 + 4 + 4 *4 + 4 * 64 + （14 +1)*sizeof(OS_TCB)	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
